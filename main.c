@@ -23,7 +23,7 @@ sem_t in_stream[MAX_USERS], done[MAX_USERS], ready, tweet_streamed, tweet_proces
 int is_ready;
 tweet in_buff[MAX_USERS];
 
-sem_t out_stream[MAX_USERS], following, following_info, following_read;
+sem_t out_stream[MAX_USERS], following_processed, following_info, following_read;
 int following_user, is_following;
 char following_tag[20];
 tweet out_buff[MAX_USERS];
@@ -116,7 +116,7 @@ void *tweeter () {
       sem_wait(&following_info);
       is_following = 0;
       sem_post(&following_info);
-      sem_post(&following);
+      sem_post(&following_processed);
     }
 
 
@@ -232,7 +232,7 @@ void *user (void *i) {
         printf("[  user %d  ]: following %s\n", id, follow);
 
         // make sure no other users are following
-        sem_wait(&following);
+        sem_wait(&following_processed);
         sem_wait(&following_info);
         following_user = id;
         is_following = 1;
@@ -311,7 +311,7 @@ int main (int argc, char **argv) {
 
   sem_init(&tweet_streamed, 0, 0);
   sem_init(&tweet_processed, 0, 0);
-  sem_init(&following, 0, 1);
+  sem_init(&following_processed, 0, 1);
   sem_init(&following_info, 0, 1);
   sem_init(&following_read, 0, 0);
   sem_init(&ready, 0, 1);

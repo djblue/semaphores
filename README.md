@@ -104,10 +104,6 @@ sem_t in_stream[MAX_USERS] = [1..1]
 # their previous tweet
 sem_t done[MAX_USERS] = [0..0]
 
-# semaphore for streamer to signal that a tweet has
-# been completely streamed
-sem_t tweet_streamed = 0
-
 # semaphore for tweeter to signal streamer that a
 # tweet has been completely processed
 sem_t tweet_processed = 0
@@ -134,24 +130,30 @@ sem_t following_read = 0
 def tweeter():
   while true:
 
-    wait(to_tweeter_mutex)
+    wait(ready)
     # process tweet if done, clear tweet
-    signalto_tweeter_mutex)
+    if (is_ready):
+      # process tweet
+      signal(tweet_processed)
+    signal(ready)
 
     wait(following)
-    # process handle, stream tweets to user
+    if(is_following):
+      # stream tweet to user
+      signal(following_processed)
     signal(following)
 
 
 def streamer():
   while true:
     for i = 0 to n:
-      wait(in[i])
+      wait(in_stream[i])
       if in_buff[i].done:
-        wait(tweeted)
-        to_tweeter = in_buffer[i]
-        signal(tweeted)
-      signal(in[i])
+        wait(ready)
+        is_ready = 1
+        signal(ready)
+        wait(tweet_processed)
+      signal(in_stream[i])
 
 def user(id):
   for each command in commands:
@@ -161,16 +163,32 @@ def user(id):
 
       case 'Start':
         for each line in tweet:
-          wait(in[id])
+          wait(in_buff[id])
           # stream tweet line to streamer
-          signal(in[id])
+          signal(in_buff[id])
 
       case 'Follow':
+
+        wait(following_processed)
+        wait(following_info)
+        # set user follow info (user, tag)
+        signal(following_info)
+
+        # recieve tweet stream
         while true:
-          wait(out[id])
-          # access to tweet
-          signal(out[id])
-          if done break
+
+          wait(out_stream[id])
+          if out_buff[id].done:
+            # access completely streamed tweet
+           signal(out_stream[id])
+
+          # check following flag to see if more tweets
+          # are coming
+          wait(following_info)
+          f = is_following
+          signal(following_info)
+          if !f:
+            break # all tweets have been streamed
 
       case 'Read':
         wait(rand())
