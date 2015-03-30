@@ -4,8 +4,6 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-#include "colors.h"
-
 #define MAX_USERS 10
 
 int n;
