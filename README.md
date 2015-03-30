@@ -1,6 +1,81 @@
 # tweeter
 
-This project demonstrates thread synchronization using semaphores.
+This project demonstrates thread synchronization using semaphores to
+simulate the tweeter social network.
+
+# Commands
+
+The following 6 commands are supported:
+
+## Handle <handle>
+
+The `Handle` command simply stores a users handle locally to the user
+function. This is useful for signing tweets later on.
+
+## Start <tag>
+
+The `Start` command will allow a user to start streaming a tweet to the
+tweeter thread. Each line is sent separately and the tweet is associated
+with the provided `<tag>` in the tweeter bank of tweets.
+
+## End <tag>
+
+The `End` command will finish a started tweet.
+
+## Follow <tag>
+
+The `Follow` command will allow a user to receive all tweets currently
+stored in the tweeter bank that have the associated `<tag>`.
+
+NOTE: the search on the tweeter bank is a basic linear search that uses
+`strcmp` to compare each tweet's tag with the provided search tag.
+
+## Read
+
+The `Read` command will randomly sleep a given user thread.
+
+NOTE: this wont effect the interaction of the stream and tweeter threads
+with other users.
+
+## Exit
+
+The `Exit` command will logout a user from their current session.
+
+# Output
+
+The output is of the following form:
+
+```
+[thread identifier]: state/execution information
+```
+
+To see an example run, see the `out` directory. The output files are
+labeled `<n>.txt`, where `<n>` is the number of users used to generate
+that output file. Ex: `./tweeter 2` will be stored in `out/2.txt`.
+
+# Data Structures
+
+The main data structure in the program is the tweet:
+
+```
+typedef struct {
+  char tag[20];     // tag assocaite with tweet
+  char body[141];   // body of the tweet
+  int len;          // the length of the body
+  int done;         // is the tweet complete or partial
+  char handle[20];  // handle of users that made the tweet
+} tweet;
+```
+
+All other variables are either arrays or primitive types.
+
+# Issues
+
+The main issues I ran into with writing the application was running into
+deadlocks. In order to deal with these issues, I would trace the output
+and see which thread was blocking and how far they made it through their
+execution path. Thus, the output was the best source of debugging
+deadlocks.
 
 # Design and Analysis
 
@@ -82,17 +157,3 @@ def main(n):
     create_thread(user, i)
 ```
 
-1. Indicate the purpose of each semaphore you introduce.
-2. To what must each semaphore be initialized and why?
-
-The arrays of in, out semaphores indicates if a specific user can stream
-their tweet to the tweeter or tweeter can stream their tweets to users.
-This helps keep the integrity of tweets before they are sent to the
-tweeter thread or read from the users. They must all be initialized to 1
-so they can act as mutexes.
-
-3. Discuss how you attempt to maximize concurrency in your design.
-
-To maximize concurrency, I only blocked on points where different threads
-accessed shared global data. All other points in the programs are
-completely concurrent.
