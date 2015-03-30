@@ -3,6 +3,16 @@
 This project demonstrates thread synchronization using semaphores to
 simulate the tweeter social network.
 
+# Building
+
+To build the project, do:
+
+    make
+
+To cleanup the project, do:
+
+    make clean
+
 # Commands
 
 The following 6 commands are supported:
@@ -157,3 +167,8 @@ def main(n):
     create_thread(user, i)
 ```
 
+# Test
+
+To run all the test, do:
+
+    make test

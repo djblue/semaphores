@@ -1,0 +1,41 @@
+[   main   ]: parsing command line arguments...
+[   main   ]: initializing semaphores...
+[   main   ]: starting the tweeter and streamer threads...
+[   main   ]: starting 1 user threads...
+[ streamer ]: running...
+[  tweeter ]: running...
+[  user 0  ]: going online...
+[  user 0  ]: opening command file...
+[  user 0  ]: handle = @happy
+[  user 0  ]: cmd = Start
+[  user 0  ]: tweeting tag = #haiku
+[  user 0  ]: streaming c = 17, line = A file that big?
+[  user 0  ]: streaming c = 25, line = It might be very useful.
+[  user 0  ]: streaming c = 20, line = But not it is gone.
+[  user 0  ]: streaming complete
+[ streamer ]: tweet streaming complete user = 0
+[  tweeter ]: processing tweet tag = #haiku, handle = @happy, body = "A file that big?\nIt might be very useful.\nBut not it is gone.\n"
+[  tweeter ]: tweet bank_len = 1
+[  user 0  ]: cmd = Follow
+[  user 0  ]: following #bostonweather
+[  tweeter ]: user i = 0 is following tag = #bostonweather 
+[  tweeter ]: checking tweet in bank i = 0 for user = 0
+[  tweeter ]: found no tweet with tag = #bostonweather
+[  user 0  ]: cmd = Read
+[  user 0  ]: reading for time = 3s
+[  user 0  ]: 3s before done reading
+[  user 0  ]: 2s before done reading
+[  user 0  ]: 1s before done reading
+[  user 0  ]: cmd = Start
+[  user 0  ]: tweeting tag = #haiku
+[  user 0  ]: streaming c = 21, line = The website you seek
+[  user 0  ]: streaming c = 22, line = cannot be located but
+[  user 0  ]: streaming c = 22, line = endless others exist.
+[  user 0  ]: streaming complete
+[ streamer ]: tweet streaming complete user = 0
+[  tweeter ]: processing tweet tag = #haiku, handle = @happy, body = "The website you seek\ncannot be located but\nendless others exist.\n"
+[  tweeter ]: tweet bank_len = 2
+[  user 0  ]: cmd = Exit
+[  user 0  ]: closing command file...
+[  user 0  ]: going offline...
+[   main   ]: gracefully exiting...

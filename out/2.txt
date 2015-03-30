@@ -1,0 +1,95 @@
+[   main   ]: parsing command line arguments...
+[   main   ]: initializing semaphores...
+[   main   ]: starting the tweeter and streamer threads...
+[   main   ]: starting 2 user threads...
+[ streamer ]: running...
+[  user 0  ]: going online...
+[  user 0  ]: opening command file...
+[  tweeter ]: running...
+[  user 0  ]: handle = @happy
+[  user 0  ]: cmd = Start
+[  user 0  ]: tweeting tag = #haiku
+[  user 1  ]: going online...
+[  user 1  ]: opening command file...
+[  user 0  ]: streaming c = 17, line = A file that big?
+[  user 0  ]: streaming c = 25, line = It might be very useful.
+[  user 0  ]: streaming c = 20, line = But not it is gone.
+[  user 0  ]: streaming complete
+[ streamer ]: tweet streaming complete user = 0
+[  tweeter ]: processing tweet tag = #haiku, handle = @happy, body = "A file that big?\nIt might be very useful.\nBut not it is gone.\n"
+[  tweeter ]: tweet bank_len = 1
+[  user 1  ]: handle = @yeti
+[  user 1  ]: cmd = Follow
+[  user 1  ]: following #haiku
+[  tweeter ]: user i = 1 is following tag = #haiku 
+[  tweeter ]: checking tweet in bank i = 0 for user = 1
+[  tweeter ]: found a tweet with tag = #haiku
+[  user 1  ]: follow tweet tag = #haiku, handle = @happy, body = "A file that big?\nIt might be very useful.\nBut not it is gone.\n"
+[  user 1  ]: cmd = Read
+[  user 1  ]: reading for time = 3s
+[  user 1  ]: 3s before done reading
+[  user 0  ]: cmd = Follow
+[  user 0  ]: following #bostonweather
+[  tweeter ]: user i = 0 is following tag = #bostonweather 
+[  tweeter ]: checking tweet in bank i = 0 for user = 0
+[  tweeter ]: found no tweet with tag = #bostonweather
+[  user 0  ]: cmd = Read
+[  user 0  ]: reading for time = 6s
+[  user 0  ]: 6s before done reading
+[  user 1  ]: 2s before done reading
+[  user 0  ]: 5s before done reading
+[  user 1  ]: 1s before done reading
+[  user 0  ]: 4s before done reading
+[  user 1  ]: cmd = Start
+[  user 1  ]: tweeting tag = #bostonweather
+[  user 1  ]: streaming c = 16, line = Did you see the
+[  user 1  ]: streaming c = 20, line = snow tunnel carved 
+[  user 1  ]: streaming c = 20, line = for the bike trail?
+[  user 1  ]: streaming complete
+[ streamer ]: tweet streaming complete user = 1
+[  tweeter ]: processing tweet tag = #bostonweather, handle = @yeti, body = "Did you see the\nsnow tunnel carved \nfor the bike trail?\n"
+[  tweeter ]: tweet bank_len = 2
+[  user 1  ]: cmd = Start
+[  user 1  ]: tweeting tag = #headlines
+[  user 1  ]: streaming c = 15, line = Net neutrality
+[  user 1  ]: streaming c = 19, line = passed by the FCC.
+[  user 1  ]: streaming complete
+[ streamer ]: tweet streaming complete user = 1
+[  tweeter ]: processing tweet tag = #headlines, handle = @yeti, body = "Net neutrality\npassed by the FCC.\n"
+[  tweeter ]: tweet bank_len = 3
+[  user 1  ]: cmd = Follow
+[  user 1  ]: following #haiku
+[  tweeter ]: user i = 1 is following tag = #haiku 
+[  tweeter ]: checking tweet in bank i = 0 for user = 1
+[  tweeter ]: found a tweet with tag = #haiku
+[  user 1  ]: follow tweet tag = #haiku, handle = @happy, body = "A file that big?\nIt might be very useful.\nBut not it is gone.\n"
+[  tweeter ]: checking tweet in bank i = 1 for user = 1
+[  tweeter ]: checking tweet in bank i = 2 for user = 1
+[  user 1  ]: cmd = Read
+[  user 1  ]: reading for time = 7s
+[  user 1  ]: 7s before done reading
+[  user 0  ]: 3s before done reading
+[  user 1  ]: 6s before done reading
+[  user 0  ]: 2s before done reading
+[  user 1  ]: 5s before done reading
+[  user 0  ]: 1s before done reading
+[  user 1  ]: 4s before done reading
+[  user 0  ]: cmd = Start
+[  user 0  ]: tweeting tag = #haiku
+[  user 0  ]: streaming c = 21, line = The website you seek
+[  user 0  ]: streaming c = 22, line = cannot be located but
+[  user 0  ]: streaming c = 22, line = endless others exist.
+[  user 0  ]: streaming complete
+[ streamer ]: tweet streaming complete user = 0
+[  tweeter ]: processing tweet tag = #haiku, handle = @happy, body = "The website you seek\ncannot be located but\nendless others exist.\n"
+[  tweeter ]: tweet bank_len = 4
+[  user 0  ]: cmd = Exit
+[  user 0  ]: closing command file...
+[  user 0  ]: going offline...
+[  user 1  ]: 3s before done reading
+[  user 1  ]: 2s before done reading
+[  user 1  ]: 1s before done reading
+[  user 1  ]: cmd = Exit
+[  user 1  ]: closing command file...
+[  user 1  ]: going offline...
+[   main   ]: gracefully exiting...
