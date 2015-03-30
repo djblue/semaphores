@@ -20,6 +20,11 @@ test: \
 	$(TEST_DIR)/7.txt \
 	$(TEST_DIR)/8.txt
 
+# zip project directory using the scheme
+# yourFirstName-yourLastName.zip
+zip:
+	git archive --format zip master -o Abdullah-Badahdah.zip
+
 $(TEST_DIR)/%.txt: $(BIN) $(TEST_DIR)
 	./$(BIN) $* > $@
 
