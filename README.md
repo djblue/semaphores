@@ -51,6 +51,14 @@ with other users.
 
 The `Exit` command will logout a user from their current session.
 
+# Input
+
+Sample input can be found in the `users` directory.
+
+NOTE: all user input is expected to be in the users directory and named
+like `user<n>.txt`. If you move one of these files, the program will no
+longer work.
+
 # Output
 
 The output is of the following form:
