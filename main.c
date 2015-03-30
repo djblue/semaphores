@@ -15,6 +15,7 @@ typedef struct {
   char body[141];
   int len;
   int done;
+  char handle[20];
 } tweet;
 
 int completed;
@@ -68,10 +69,11 @@ void *tweeter () {
       sem_wait(&tweet_streamed);
 
       escape(buff, in_buff[completed].body);
-      printf("[  tweeter ]: processing tweet tag = %s, body = "__green("\"%s\"")"\n", in_buff[completed].tag, buff);
+      printf("[  tweeter ]: processing tweet tag = %s, handle = %s, body = \"%s\"\n", in_buff[completed].tag, in_buff[completed].handle, buff);
 
       strcpy(bank[bank_len].tag, in_buff[completed].tag);
       strcpy(bank[bank_len].body, in_buff[completed].body);
+      strcpy(bank[bank_len].handle, in_buff[completed].handle);
       bank_len++;
 
       printf("[  tweeter ]: tweet bank_len = %d\n", bank_len);
@@ -100,6 +102,7 @@ void *tweeter () {
           printf("[  tweeter ]: found a tweet with tag = %s\n", tag);
           sem_wait(&out_stream[user]);
           strcpy(out_buff[user].body, bank[i].body);
+          strcpy(out_buff[user].handle, bank[i].handle);
           out_buff[user].done = 1;
           sem_post(&out_stream[user]);
           sem_wait(&following_read);
@@ -189,6 +192,7 @@ void *user (void *i) {
       case 'S':
         sem_wait(&in_stream[id]);
         fscanf(cmds, "%s\n", in_buff[id].tag);
+        strcpy(in_buff[id].handle, handle);
         printf("[  user %d  ]: tweeting tag = %s\n", id, in_buff[id].tag);
         in_buff[id].len = 0;
         in_buff[id].done = 0;
@@ -242,7 +246,7 @@ void *user (void *i) {
           if (out_buff[id].done == 1) {
             out_buff[id].done = 0;
             escape(buff, out_buff[id].body);
-            printf("[  user %d  ]: follow tweet tag = %s body = %s \n", id, follow, buff);
+            printf("[  user %d  ]: follow tweet tag = %s, handle = %s, body = \"%s\"\n", id, follow, out_buff[id].handle, buff);
             sem_post(&following_read);
           }
           sem_post(&out_stream[id]);
