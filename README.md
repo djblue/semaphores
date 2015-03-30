@@ -87,22 +87,49 @@ and see which thread was blocking and how far they made it through their
 execution path. Thus, the output was the best source of debugging
 deadlocks.
 
-# Design and Analysis
+# Pseudo Code
 
-The following psudo-code represents the program:
+The following pseudo code represents the program:
 
 ```
 # the in_buff is the buffer for users
 # to stream their tweets
 tweet in_buff[MAX_USERS]
+
 # mutex to guad in_buff
 sem_t in_stream[MAX_USERS] = [1..1]
 
-# the in_buff is the buffer for tweeter
-# to stream its tweets
-tweet out_buff[MAX_USERS]
-# mutex to guad out_buff
+# semaphores to make sure the tweet has been stored by
+# tweeter before continuing, and possibly overwriting
+# their previous tweet
+sem_t done[MAX_USERS] = [0..0]
+
+# semaphore for streamer to signal that a tweet has
+# been completely streamed
+sem_t tweet_streamed = 0
+
+# semaphore for tweeter to signal streamer that a
+# tweet has been completely processed
+sem_t tweet_processed = 0
+
+# mutex to guard the is_ready flag that is set when
+# the streamer has recieved a tweet from a user
+sem_t ready = 1
+
+# mutexs to guad out_buff
 sem_t out_stream[MAX_USERS] = [1..1]
+
+# semaphore for signaling that a user wants to follow
+# a tag
+sem_t following = 1
+
+# mutex for guarding shared following info such as
+#   who is following, what tag they are following
+sem_t following_info = 1
+
+# semaphore for user to signal the streamer that they
+# have finished reading the tweet
+sem_t following_read = 0
 
 def tweeter():
   while true:
