@@ -19,9 +19,14 @@ typedef struct {
 
 int completed;
 
+sem_t in_stream[MAX_USERS], done[MAX_USERS], ready, tweet_streamed, tweet_processed;
+int is_ready;
 tweet in_buff[MAX_USERS];
+
+sem_t out_stream[MAX_USERS], following, following_info, following_read;
+int following_user, is_following;
+char following_tag[20];
 tweet out_buff[MAX_USERS];
-sem_t in_stream[MAX_USERS], done[MAX_USERS], tweet_streamed, tweet_processed;
 
 void escape(char *buff, char *str) {
   int i = 0;
@@ -46,24 +51,73 @@ void *tweeter () {
 
   tweet bank[1024];
   int bank_len = 0;
+  int r, f, user;
+  char tag[20];
 
   char buff[1024];
   printf("[  tweeter ]: running...\n");
 
   while (1) {
 
-    sem_wait(&tweet_streamed);
+    sem_wait(&ready);
+    r = is_ready;
+    sem_post(&ready);
 
-    escape(buff, in_buff[completed].body);
-    printf("[  tweeter ]: processing tweet tag = %s, body = "__green("\"%s\"")"\n", in_buff[completed].tag, buff);
+    if (r == 1) {
 
-    strcpy(bank[bank_len].tag, in_buff[completed].tag);
-    strcpy(bank[bank_len].body, in_buff[completed].body);
-    bank_len++;
+      sem_wait(&tweet_streamed);
 
-    printf("[  tweeter ]: tweet bank_len = %d\n", bank_len);
+      escape(buff, in_buff[completed].body);
+      printf("[  tweeter ]: processing tweet tag = %s, body = "__green("\"%s\"")"\n", in_buff[completed].tag, buff);
 
-    sem_post(&tweet_processed);
+      strcpy(bank[bank_len].tag, in_buff[completed].tag);
+      strcpy(bank[bank_len].body, in_buff[completed].body);
+      bank_len++;
+
+      printf("[  tweeter ]: tweet bank_len = %d\n", bank_len);
+
+      sem_post(&tweet_processed);
+
+      sem_wait(&ready);
+      is_ready = 0;
+      sem_post(&ready);
+    }
+
+    sem_wait(&following_info);
+    f = is_following;
+    user = following_user;
+    strcpy(tag, following_tag);
+    sem_post(&following_info);
+
+    if (f == 1) {
+
+      printf("[  tweeter ]: user i = %d is following tag = %s \n", user, tag);
+
+      int found = 0;
+      for (int i = 0; i < bank_len; i++) {
+        printf("[  tweeter ]: checking tweet in bank i = %d for user = %d\n", i, user);
+        if (strcmp(bank[i].tag, tag) == 0) {
+          printf("[  tweeter ]: found a tweet with tag = %s\n", tag);
+          sem_wait(&out_stream[user]);
+          strcpy(out_buff[user].body, bank[i].body);
+          out_buff[user].done = 1;
+          sem_post(&out_stream[user]);
+          sem_wait(&following_read);
+          found++;
+        }
+      }
+
+      if (found == 0) {
+        printf("[  tweeter ]: found no tweet with tag = %s\n", tag);
+      }
+
+      sem_wait(&following_info);
+      is_following = 0;
+      sem_post(&following_info);
+      sem_post(&following);
+    }
+
+
   }
 
   printf("[  tweeter ]: stopping...\n");
@@ -89,6 +143,9 @@ void *streamer () {
         in_buff[i].done = 0;
         sem_post(&tweet_streamed);
         completed = i;
+        sem_wait(&ready);
+        is_ready = 1;
+        sem_post(&ready);
         sem_wait(&tweet_processed);
         sem_post(&done[i]);
       }
@@ -128,6 +185,7 @@ void *user (void *i) {
     printf("[  user %d  ]: cmd = %s\n", id, cmd);
 
     switch (cmd[0]) {
+
       case 'S':
         sem_wait(&in_stream[id]);
         fscanf(cmds, "%s\n", in_buff[id].tag);
@@ -163,10 +221,40 @@ void *user (void *i) {
         }
         break;
 
-      case 'F':
+      case 'F': {
+        int f;
+        char buff[1024];
         fscanf(cmds, "%s", follow);
+
         printf("[  user %d  ]: following %s\n", id, follow);
+
+        // make sure no other users are following
+        sem_wait(&following);
+        sem_wait(&following_info);
+        following_user = id;
+        is_following = 1;
+        strcpy(following_tag, follow);
+        sem_post(&following_info);
+
+        while (1) {
+
+          sem_wait(&out_stream[id]);
+          if (out_buff[id].done == 1) {
+            out_buff[id].done = 0;
+            escape(buff, out_buff[id].body);
+            printf("[  user %d  ]: follow tweet tag = %s body = %s \n", id, follow, buff);
+            sem_post(&following_read);
+          }
+          sem_post(&out_stream[id]);
+
+          sem_wait(&following_info);
+          f = is_following;
+          sem_post(&following_info);
+          if (!f) break;
+        }
+
         break;
+      }
 
       case 'R': {
         int n = rand() % 10;
@@ -183,6 +271,7 @@ void *user (void *i) {
         fclose(cmds);
         printf("[  user %d  ]: going offline...\n", id);
         return NULL;
+
     }
   }
 
@@ -219,9 +308,17 @@ int main (int argc, char **argv) {
 
   sem_init(&tweet_streamed, 0, 0);
   sem_init(&tweet_processed, 0, 0);
+  sem_init(&following, 0, 1);
+  sem_init(&following_info, 0, 1);
+  sem_init(&following_read, 0, 0);
+  sem_init(&ready, 0, 1);
+
+  is_following = 0;
+  is_ready = 0;
 
 	for (int i = 0; i < n; i++) {
     sem_init(&in_stream[i], 0, 1);
+    sem_init(&out_stream[i], 0, 1);
     sem_init(&done[i], 0, 0);
   }
 
