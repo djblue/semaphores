@@ -4,6 +4,8 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+#include "colors.h"
+
 #define MAX_USERS 10
 
 int n;
@@ -19,15 +21,48 @@ int completed;
 
 tweet in_buff[MAX_USERS];
 tweet out_buff[MAX_USERS];
-sem_t streams[MAX_USERS], done[MAX_USERS], tweet_streamed, tweet_processed;
+sem_t in_stream[MAX_USERS], done[MAX_USERS], tweet_streamed, tweet_processed;
+
+void escape(char *buff, char *str) {
+  int i = 0;
+  char *c;
+  c = str;
+  while (*c) {
+    if (*c == '\n') {
+      buff[i] = '\\';
+      i++;
+      buff[i] = 'n';
+      i++;
+    } else {
+      buff[i] = *c;
+      i++;
+    }
+    c++;
+  }
+  buff[i] = '\0';
+}
 
 void *tweeter () {
 
+  tweet bank[1024];
+  int bank_len = 0;
+
+  char buff[1024];
   printf("[  tweeter ]: running...\n");
 
   while (1) {
+
     sem_wait(&tweet_streamed);
-    printf("[  tweeter ]: processing tweet tag = %s\n", in_buff[completed].tag);
+
+    escape(buff, in_buff[completed].body);
+    printf("[  tweeter ]: processing tweet tag = %s, body = "__green("\"%s\"")"\n", in_buff[completed].tag, buff);
+
+    strcpy(bank[bank_len].tag, in_buff[completed].tag);
+    strcpy(bank[bank_len].body, in_buff[completed].body);
+    bank_len++;
+
+    printf("[  tweeter ]: tweet bank_len = %d\n", bank_len);
+
     sem_post(&tweet_processed);
   }
 
@@ -47,8 +82,7 @@ void *streamer () {
 
   while (1) {
     for (int i = 0; i < n; i++) {
-      sem_post(&streams[i]);
-
+      sem_wait(&in_stream[i]);
       // a tweet has been completely streamed
       if (in_buff[i].done == 1) {
         printf("[ streamer ]: tweet streaming complete user = %d\n", i);
@@ -56,7 +90,9 @@ void *streamer () {
         sem_post(&tweet_streamed);
         completed = i;
         sem_wait(&tweet_processed);
+        sem_post(&done[i]);
       }
+      sem_post(&in_stream[i]);
     }
   }
 
@@ -90,29 +126,39 @@ void *user (void *i) {
   while (fscanf(cmds, "%s", &cmd)) {
 
     printf("[  user %d  ]: cmd = %s\n", id, cmd);
-    sem_wait(&streams[id]);
 
     switch (cmd[0]) {
       case 'S':
-        //sem_wait(&streams[id]);
+        sem_wait(&in_stream[id]);
         fscanf(cmds, "%s\n", in_buff[id].tag);
         printf("[  user %d  ]: tweeting tag = %s\n", id, in_buff[id].tag);
         in_buff[id].len = 0;
         in_buff[id].done = 0;
+        sem_post(&in_stream[id]);
 
         // stream tweet
         while (1) {
-          sem_wait(&streams[id]);
           fgets(line, 140, cmds);
           int c = strlen(line);
           if (line[0] == 'E') {
+
+            sem_wait(&in_stream[id]);
             printf("[  user %d  ]: streaming complete\n", id);
+            in_buff[id].body[in_buff[id].len] = '\0';
             in_buff[id].done = 1;
+            sem_post(&in_stream[id]);
+
+            sem_wait(&done[id]); // wait for tweeter to read tweet
             break;
+
           } else {
+
+            sem_wait(&in_stream[id]);
             printf("[  user %d  ]: streaming c = %d, line = %s", id, c, line);
             memcpy(in_buff[id].body + in_buff[id].len, line, c);
             in_buff[id].len += c;
+            sem_post(&in_stream[id]);
+
           }
         }
         break;
@@ -123,9 +169,12 @@ void *user (void *i) {
         break;
 
       case 'R': {
-        int t = rand() % 2;
-        printf("[  user %d  ]: reading for time = %d seconds\n", id, t);
-        sleep(t);
+        int n = rand() % 10;
+        printf("[  user %d  ]: reading for time = %ds\n", id, n);
+        for (int i = 0; i < n; i++) {
+          printf("[  user %d  ]: %ds before done reading\n", id, n - i);
+          sleep(1);
+        }
         break;
       }
 
@@ -166,6 +215,16 @@ int main (int argc, char **argv) {
     usage(argv[0]);
   }
 
+  printf("[   main   ]: initializing semaphores...\n");
+
+  sem_init(&tweet_streamed, 0, 0);
+  sem_init(&tweet_processed, 0, 0);
+
+	for (int i = 0; i < n; i++) {
+    sem_init(&in_stream[i], 0, 1);
+    sem_init(&done[i], 0, 0);
+  }
+
   printf("[   main   ]: starting the tweeter and streamer threads...\n");
 
   // launch the tweeters and streamers (1 of each)
@@ -174,20 +233,15 @@ int main (int argc, char **argv) {
     exit(1);
   }
 	if (pthread_create(&stream, NULL, streamer, NULL) != 0) {
-    printf("[   main    ]: error can't create start streamer thread.\n");
+    printf("[   main   ]: error can't create start streamer thread.\n");
     exit(1);
   }
 
   printf("[   main   ]: starting %d user threads...\n", n);
 
-  sem_init(&tweet_streamed, 0, 0);
-  sem_init(&tweet_processed, 0, 0);
-
   // launch all the user threads
 	for (int i = 0; i < n; i++) {
     my_ids[i] = i;
-    sem_init(&streams[i], 0, 0);
-    sem_init(&done[i], 0, 0);
 		if (pthread_create(&tid[i], NULL, user, &my_ids[i]) != 0) {
       printf("[   main   ]: error can't create thread = %d.\n", i);
       exit(1);
@@ -197,6 +251,7 @@ int main (int argc, char **argv) {
   // wait for all user threads to complete (like a boss)
 	for (int i = 0; i < n; i++) {
 		pthread_join(tid[i], NULL);
+
   }
 
   printf("[   main   ]: gracefully exiting...\n");
