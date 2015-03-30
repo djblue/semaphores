@@ -89,28 +89,20 @@ deadlocks.
 
 # Design and Analysis
 
-The program is essentially the following:
+The following psudo-code represents the program:
 
 ```
-MAX_USERS 10
+# the in_buff is the buffer for users
+# to stream their tweets
+tweet in_buff[MAX_USERS]
+# mutex to guad in_buff
+sem_t in_stream[MAX_USERS] = [1..1]
 
-struct tweet {
-  char body[141]   # body of the tweet
-  char tag[20]     # tag assocaite with tweet
-  bool done        # is the tweet complete or partial
-}
-
-sem_t in[MAX_USERS] = 0
-tweet in_buff[MAX_USERS] = [1..1]
-
-sem_t out[MAX_USERS] = [1..1]
+# the in_buff is the buffer for tweeter
+# to stream its tweets
 tweet out_buff[MAX_USERS]
-
-semt_t to_tweeter_mutex = 1
-tweet to_tweeter = NULL
-
-sem_t handle_mutex = 1
-handle h = NULL
+# mutex to guad out_buff
+sem_t out_stream[MAX_USERS] = [1..1]
 
 def tweeter():
   while true:
